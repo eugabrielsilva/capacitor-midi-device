@@ -96,7 +96,6 @@ public class CapacitorMIDIDevicePlugin: CAPPlugin {
 
     let readProc: MIDIReadProc = { packetList, refCon, _ in
       guard
-        let packetList = packetList,
         let refCon = refCon
       else {
         return
