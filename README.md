@@ -1,11 +1,11 @@
-# @midiative/capacitor-midi-device
+# @eugabrielsilva/capacitor-midi-device
 
 Connect midi devices to your app
 
 ## Install
 
 ```bash
-npm install @midiative/capacitor-midi-device
+npm install @eugabrielsilva/capacitor-midi-device
 npx cap sync
 ```
 
