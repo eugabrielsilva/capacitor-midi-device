@@ -1,5 +1,5 @@
 {
-  "name": "@midiative/capacitor-midi-device",
+  "name": "@eugabrielsilva/capacitor-midi-device",
   "version": "7.0.0",
   "description": "connect midi devices to your app",
   "main": "dist/plugin.cjs.js",
@@ -17,10 +17,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/midiative/capacitor-midi-device.git"
+    "url": "git+https://github.com/eugabrielsilva/capacitor-midi-device.git"
   },
   "bugs": {
-    "url": "https://github.com/midiative/capacitor-midi-device/issues"
+    "url": "https://github.com/eugabrielsilva/capacitor-midi-device/issues"
   },
   "keywords": [
     "capacitor",

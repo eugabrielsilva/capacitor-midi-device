@@ -37,21 +37,38 @@ public class CapacitorMIDIDevicePlugin extends Plugin {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @PluginMethod
     public void openDevice(PluginCall call) {
-        int deviceNumber = call.getInt("deviceNumber");
+        Integer deviceNumber = call.getInt("deviceNumber");
+        if (deviceNumber == null || deviceNumber < 0) {
+            call.reject("No valid deviceNumber given");
+            return;
+        }
+
         androidMidiHandler.openDevice(deviceNumber, (MIDIDeviceMessage message) -> {
+            if (message == null || message.msg == null || message.count < 3) {
+                return;
+            }
+
+            int statusIndex = message.offset;
+            int noteIndex = message.offset + 1;
+            int velocityIndex = message.offset + 2;
+
+            if (statusIndex >= message.msg.length || noteIndex >= message.msg.length || velocityIndex >= message.msg.length) {
+                return;
+            }
+
             JSObject midiMessage = new JSObject();
 
-            String rawType = String.valueOf(message.msg[1]);
-            int note = message.msg[2];
-            int velocity = message.msg[3];
+            int rawStatus = message.msg[statusIndex] & 0xF0;
+            int note = message.msg[noteIndex] & 0x7F;
+            int velocity = message.msg[velocityIndex] & 0x7F;
 
             String type = "";
-            if ( rawType.equals("-112") && velocity != 0 ) {
+            if (rawStatus == 0x90 && velocity != 0) {
                 type = "NoteOn";
-            } else if ( (rawType.equals("-128") || rawType.equals("-112")) && velocity == 0 ) {
+            } else if (rawStatus == 0x80 || (rawStatus == 0x90 && velocity == 0)) {
                 type = "NoteOff";
             } else {
-                type = "UNKNOWN - " + rawType;
+                type = "UNKNOWN - " + rawStatus;
             }
 
             midiMessage.put("type", type);

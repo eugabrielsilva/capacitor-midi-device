@@ -2,180 +2,197 @@ import Foundation
 import Capacitor
 import CoreMIDI
 
-struct MIDIDevice {
-  let name: String
-}
-
-struct MIDIDeviceMessage {
-    let msg: [UInt8]
-    let offset: Int
-    let count: Int
-    let timestamp: Int64
-    
-    init(msg: [UInt8], offset: Int, count: Int, timestamp: Int64) {
-        self.msg = msg
-        self.offset = offset
-        self.count = count
-        self.timestamp = timestamp
-    }
-}
-
-
-typealias MIDIDeviceMessageConsumer = (MIDIDeviceMessage) -> Void
-
 @objc(CapacitorMIDIDevicePlugin)
 public class CapacitorMIDIDevicePlugin: CAPPlugin {
+  private var midiClient: MIDIClientRef = 0
+  private var inputPort: MIDIPortRef = 0
+  private var connectedSource: MIDIEndpointRef = 0
+  private var connectionListenerInitialized = false
+
+  public override func load() {
+    super.load()
+    _ = createClientIfNeeded()
+    _ = createInputPortIfNeeded()
+  }
+
+  deinit {
+    if connectedSource != 0, inputPort != 0 {
+      MIDIPortDisconnectSource(inputPort, connectedSource)
+    }
+    if inputPort != 0 {
+      MIDIPortDispose(inputPort)
+    }
+    if midiClient != 0 {
+      MIDIClientDispose(midiClient)
+    }
+  }
 
     @objc func listMIDIDevices(_ call: CAPPluginCall) {
-        var deviceNames: [String] = []
-            
-            // Get the total number of MIDI devices
-            let deviceCount = MIDIGetNumberOfDevices()
-            
-            // Iterate through each device
-            for i in 0..<deviceCount {
-                let device = MIDIGetDevice(i)
-                if device != 0 {
-                    // Get the device name
-                    var cfName: Unmanaged<CFString>? = nil
-                    let result = MIDIObjectGetStringProperty(device, kMIDIPropertyName, &cfName)
-                    
-                    if result == noErr, let cfString = cfName?.takeRetainedValue() {
-                        let deviceName = cfString as String
-                        deviceNames.append(deviceName)
-                    }
-                }
-            }
-        
-        call.resolve(["value": deviceNames])
+    call.resolve(["value": listAvailableSourceNames()])
     }
 
-    private func getAvailableMIDIDevices() -> [MIDIDevice]? {
-      // Implementation code for retrieving available MIDI devices
-      // This can vary depending on the platform and MIDI library you're using
-      // Here's a sample implementation using Core MIDI framework on iOS:
-
-      var devices: [MIDIDevice] = []
-      var client = MIDIClientRef()
-      
-      guard MIDIClientCreateWithBlock("MIDIDevicePlugin" as CFString, &client, nil) == noErr else {
-        return nil
-      }
-      
-      let destinationCount = MIDIGetNumberOfDestinations()
-      for index in 0..<destinationCount {
-        let destination = MIDIGetDestination(index)
-        if destination != 0 {
-          let device = MIDIDevice(name: getDestinationName(destination))
-          devices.append(device)
-        }
-      }
-      
-      return devices.isEmpty ? nil : devices
-    }
-
-    private func getDestinationName(_ destination: MIDIEndpointRef) -> String {
-      var cfName: Unmanaged<CFString>? = nil
-      let result = MIDIObjectGetStringProperty(destination, kMIDIPropertyDisplayName, &cfName)
-      if result == noErr, let cfString = cfName?.takeRetainedValue() {
-        return cfString as String
-      }
-      return ""
-    }
-    
-    
-    func openMIDIDevice(deviceID: Int) {
-        // Open the MIDI device
-        var midiClient: MIDIClientRef = 0
-        var midiPort: MIDIPortRef = 0
-        /*var status = MIDIOutputPortCreate(midiClient, "MIDI Output Port" as CFString, &midiPort)
-        guard status == noErr else {
-            print("Error creating MIDI output port")
-            return
-        }*/
-
-        // Create the MIDI read block
-        let readBlock: MIDIReadBlock = { packetList, _ in
-            let packetCount = Int(packetList.pointee.numPackets)
-            let packets = packetList.pointee.packet
-
-            var packet = packets
-            for _ in 0..<packetCount {
-                let messageData = Data(bytes: &packet.data, count: Int(packet.length))
-
-                // Pass the data to the consumer
-                // ...
-                print(messageData)
-
-                packet = MIDIPacketNext(&packet).pointee
-            }
-        }
-        
-        // Convert the readBlock to MIDIReadProc
-        let readProc: MIDIReadProc = { packetList, refCon, sourceRefCon in
-            let block = unsafeBitCast(refCon, to: MIDIReadBlock.self)
-            block(packetList, sourceRefCon)
-            print("read something")
-        }
-        
-        // Create the MIDI input port
-        let portName = "MIDI Input Port"
-        var status = MIDIInputPortCreate(midiClient, portName as CFString, readProc, nil, &midiPort)
-        guard status == noErr else {
-            print("Error creating MIDI input port")
-            return
-        }
-        
-        // Connect the MIDI input port to the MIDI device source
-        let sourceEndpoint = MIDIGetSource(deviceID)
-
-        
-        // Start processing MIDI messages
-        status = MIDIPortConnectSource(midiPort, sourceEndpoint, nil)
-        guard status == noErr else {
-            print("Error starting MIDI processing")
-            return
-        }
-        
-        // MIDI device is now open and processing MIDI messages
-    }
-    
   @objc func openDevice(_ call: CAPPluginCall) {
-      guard let deviceNumber = call.getInt("deviceNumber") as Int? else {
+    guard let deviceNumber = call.getInt("deviceNumber") else {
           call.reject("No deviceNumber given")
           return
       }
-      print("open device with device numer: " + String(deviceNumber))
-      
-      openMIDIDevice(deviceID: deviceNumber)
-      
-  }
 
-  @objc func initConnectionListener(_ call: CAPPluginCall) {
-    // Implementation code for initializing the connection listener
-  }
-
-  @objc public override func addListener(_ call: CAPPluginCall) {
-    guard let eventName = call.getString("eventName") else {
-      call.reject("Invalid eventName")
+    guard createClientIfNeeded() else {
+      call.reject("Could not initialize MIDI client")
       return
     }
 
-    switch eventName {
-      case "MIDI_MSG_EVENT":
-        addMidiMessageListener(call)
-      case "MIDI_CON_EVENT":
-        addMidiConnectionListener(call)
-      default:
-        call.reject("Unsupported eventName")
+    guard createInputPortIfNeeded() else {
+      call.reject("Could not initialize MIDI input port")
+      return
+    }
+
+    let sources = listAvailableSources()
+    guard sources.indices.contains(deviceNumber) else {
+      call.reject("Invalid deviceNumber")
+      return
+    }
+
+    if connectedSource != 0 {
+      MIDIPortDisconnectSource(inputPort, connectedSource)
+    }
+
+    let sourceEndpoint = sources[deviceNumber]
+    let status = MIDIPortConnectSource(inputPort, sourceEndpoint, nil)
+    guard status == noErr else {
+      call.reject("Error connecting MIDI source")
+      return
+    }
+
+    connectedSource = sourceEndpoint
+    call.resolve()
+  }
+
+  @objc func initConnectionListener(_ call: CAPPluginCall) {
+    connectionListenerInitialized = true
+    emitConnectionEvent()
+    call.resolve()
+  }
+
+  private func createClientIfNeeded() -> Bool {
+    if midiClient != 0 {
+      return true
+    }
+
+    let status = MIDIClientCreateWithBlock("CapacitorMIDIDeviceClient" as CFString, &midiClient) { [weak self] _ in
+      guard let self = self, self.connectionListenerInitialized else {
+        return
+      }
+      self.emitConnectionEvent()
+    }
+
+    return status == noErr
+  }
+
+  private func createInputPortIfNeeded() -> Bool {
+    if inputPort != 0 {
+      return true
+    }
+
+    let readProc: MIDIReadProc = { packetList, refCon, _ in
+      guard
+        let packetList = packetList,
+        let refCon = refCon
+      else {
+        return
+      }
+
+      let plugin = Unmanaged<CapacitorMIDIDevicePlugin>.fromOpaque(refCon).takeUnretainedValue()
+      plugin.handleMidiPacketList(packetList)
+    }
+
+    let status = MIDIInputPortCreate(
+      midiClient,
+      "CapacitorMIDIDeviceInputPort" as CFString,
+      readProc,
+      Unmanaged.passUnretained(self).toOpaque(),
+      &inputPort
+    )
+
+    return status == noErr
+  }
+
+  private func listAvailableSources() -> [MIDIEndpointRef] {
+    var sources: [MIDIEndpointRef] = []
+    for index in 0..<MIDIGetNumberOfSources() {
+      let source = MIDIGetSource(index)
+      if source != 0 {
+        sources.append(source)
+      }
+    }
+    return sources
+  }
+
+  private func listAvailableSourceNames() -> [String] {
+    return listAvailableSources().map(getSourceName)
+  }
+
+  private func getSourceName(_ source: MIDIEndpointRef) -> String {
+    var displayName: Unmanaged<CFString>?
+    let displayNameStatus = MIDIObjectGetStringProperty(source, kMIDIPropertyDisplayName, &displayName)
+    if displayNameStatus == noErr, let cfString = displayName?.takeRetainedValue() {
+      return cfString as String
+    }
+
+    var name: Unmanaged<CFString>?
+    let nameStatus = MIDIObjectGetStringProperty(source, kMIDIPropertyName, &name)
+    if nameStatus == noErr, let cfString = name?.takeRetainedValue() {
+      return cfString as String
+    }
+
+    return "Unknown MIDI Device"
+  }
+
+  private func handleMidiPacketList(_ packetListPointer: UnsafePointer<MIDIPacketList>) {
+    let packetList = packetListPointer.pointee
+    var packet = packetList.packet
+
+    for _ in 0..<packetList.numPackets {
+      let length = Int(packet.length)
+      let bytes: [UInt8] = withUnsafeBytes(of: packet.data) { rawBuffer in
+        Array(rawBuffer.prefix(length))
+      }
+      emitMessageEvent(bytes)
+      packet = MIDIPacketNext(&packet).pointee
     }
   }
 
-  private func addMidiMessageListener(_ call: CAPPluginCall) {
-    // Implementation code for adding a MIDI message listener
+  private func emitMessageEvent(_ bytes: [UInt8]) {
+    guard bytes.count >= 3 else {
+      return
+    }
+
+    let status = bytes[0] & 0xF0
+    let note = Int(bytes[1])
+    let velocity = Int(bytes[2])
+    let type: String
+
+    if status == 0x90 && velocity != 0 {
+      type = "NoteOn"
+    } else if status == 0x80 || (status == 0x90 && velocity == 0) {
+      type = "NoteOff"
+    } else {
+      type = "UNKNOWN - \(bytes[0])"
+    }
+
+    DispatchQueue.main.async {
+      self.notifyListeners("MIDI_MSG_EVENT", data: [
+        "type": type,
+        "note": note,
+        "velocity": velocity,
+      ])
+    }
   }
 
-  private func addMidiConnectionListener(_ call: CAPPluginCall) {
-    // Implementation code for adding a MIDI connection listener
+  private func emitConnectionEvent() {
+    let names = listAvailableSourceNames()
+    DispatchQueue.main.async {
+      self.notifyListeners("MIDI_CON_EVENT", data: ["value": names])
+    }
   }
 }

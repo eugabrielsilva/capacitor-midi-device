@@ -16,8 +16,12 @@ export class WebMIDIHandler {
 
     public async initWebMidi(): Promise<void> {
         if (!this.midi) {
-            this.midi = await WebMidi.enable()
-                .catch(e => console.log(e))
+            try {
+                this.midi = await WebMidi.enable()
+            } catch (e) {
+                console.error("WebMidi initialization failed", e)
+                throw e
+            }
         }
     }
 

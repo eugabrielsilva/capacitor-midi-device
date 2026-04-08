@@ -100,7 +100,7 @@ public class AndroidMIDIHandler {
         }
 
         MidiDeviceInfo deviceInfos[] = this.midiManager.getDevices();
-        if (deviceInfos.length > 0 && deviceNumber < deviceInfos.length) {
+        if (deviceInfos.length > 0 && deviceNumber >= 0 && deviceNumber < deviceInfos.length) {
             // Prevent multiple device subscriptions
             if (lastOutputPort != null) {
                 try {
@@ -115,10 +115,16 @@ public class AndroidMIDIHandler {
                         if (device != null) {
                             Log.i("MIDIPlugin", "Device opened: " + device);
 
-
                             MidiOutputPort midiOutputPort = device.openOutputPort(0);
+                            if (midiOutputPort == null) {
+                                Log.e("MIDIPlugin", "Could not open output port for device");
+                                return;
+                            }
+
                             lastOutputPort = midiOutputPort;
                             midiOutputPort.connect(new MIDIMessageReceiver(consumer));
+                        } else {
+                            Log.e("MIDIPlugin", "Could not open MIDI device");
                         }
                     }, new Handler(Looper.getMainLooper()));
         } else {

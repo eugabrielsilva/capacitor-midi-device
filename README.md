@@ -16,8 +16,8 @@ npx cap sync
 * [`listMIDIDevices()`](#listmididevices)
 * [`openDevice(...)`](#opendevice)
 * [`initConnectionListener()`](#initconnectionlistener)
-* [`addListener('MIDI_MSG_EVENT', ...)`](#addlistenermidi_msg_event)
-* [`addListener('MIDI_CON_EVENT', ...)`](#addlistenermidi_con_event)
+* [`addListener('MIDI_MSG_EVENT', ...)`](#addlistenermidi_msg_event-)
+* [`addListener('MIDI_CON_EVENT', ...)`](#addlistenermidi_con_event-)
 * [Interfaces](#interfaces)
 
 </docgen-index>
