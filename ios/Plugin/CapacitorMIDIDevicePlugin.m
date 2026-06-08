@@ -6,5 +6,6 @@
 CAP_PLUGIN(CapacitorMIDIDevicePlugin, "CapacitorMIDIDevice",
            CAP_PLUGIN_METHOD(listMIDIDevices, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(openDevice, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(sendMIDIMessage, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(initConnectionListener, CAPPluginReturnPromise);
            )

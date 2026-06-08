@@ -3,6 +3,7 @@ import {WebMidi} from "webmidi";
 export class WebMIDIHandler {
     private static _instance?: WebMIDIHandler;
     private midi: any = null;
+    private activeDeviceNo?: number;
 
     private constructor() {
         if (WebMIDIHandler._instance)
@@ -33,22 +34,40 @@ export class WebMIDIHandler {
 
         if (this.midi.inputs && this.midi.inputs.length > 0 && deviceNo < this.midi.inputs.length) {
             const device = this.midi.inputs[deviceNo]
+            this.activeDeviceNo = deviceNo;
 
             // prevent multiple event listener subscriptions
             this.midi.inputs.forEach((d: any) => {
-                d.removeListener("noteon")
-                d.removeListener("noteoff")
+                d.removeListener("midimessage")
             })
 
-            device.addListener("noteon", (e: any) => {
-                callback(e)
-            });
-            device.addListener("noteoff", (e: any) => {
+            device.addListener("midimessage", (e: any) => {
                 callback(e)
             });
         } else {
             console.error("Could not open device")
         }
+    }
+
+    public sendMIDIMessage(data: number[], deviceNo?: number): void {
+        if (!this.midi) {
+            console.error("WebMidi not initialized!")
+            return
+        }
+
+        const targetDeviceNo = deviceNo ?? this.activeDeviceNo;
+        if (targetDeviceNo === undefined || targetDeviceNo < 0 || targetDeviceNo >= this.midi.outputs.length) {
+            console.error("No valid output device selected")
+            return
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+            console.error("MIDI message data cannot be empty")
+            return
+        }
+
+        const sanitizedData = data.map((byte) => Math.max(0, Math.min(255, Math.floor(byte))));
+        this.midi.outputs[targetDeviceNo].send(sanitizedData)
     }
 
     public getInputsAndOutputs(): { value: string[] } {

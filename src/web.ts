@@ -1,7 +1,7 @@
 import { WebPlugin } from '@capacitor/core';
 
 import {WebMIDIHandler} from "./WebMIDIHandler";
-import type {CapacitorMIDIDevicePlugin, DeviceOptions} from './definitions';
+import type {CapacitorMIDIDevicePlugin, DeviceOptions, MidiMessage, SendMIDIMessageOptions} from './definitions';
 
 export class CapacitorMIDIDeviceWeb
   extends WebPlugin
@@ -20,29 +20,76 @@ export class CapacitorMIDIDeviceWeb
     const wmh = WebMIDIHandler.instance;
     await wmh.initWebMidi()
     const callback = (ret: any) => {
-      let msgType
-      switch (ret.type) {
-        case("noteon"):
-          msgType = "NoteOn"
-          break;
-        case("noteoff"):
-          msgType = "NoteOff"
-          break;
-        default:
-          msgType = "UNKNOWN - " + ret.type
-          break;
+      const data: number[] = Array.isArray(ret.data)
+        ? ret.data
+        : Array.from(ret.data ?? []);
+      const statusByte = data.length > 0 ? data[0] : 0;
+      const status = statusByte & 0xF0;
+      const channel = (statusByte & 0x0F) + 1;
+      const velocity = data.length > 2 ? data[2] : 0;
+
+      let msgType = "SystemMessage"
+      if (status === 0x80 || (status === 0x90 && velocity === 0)) {
+        msgType = "NoteOff"
+      } else if (status === 0x90) {
+        msgType = "NoteOn"
+      } else if (status === 0xA0) {
+        msgType = "PolyAftertouch"
+      } else if (status === 0xB0) {
+        msgType = "ControlChange"
+      } else if (status === 0xC0) {
+        msgType = "ProgramChange"
+      } else if (status === 0xD0) {
+        msgType = "ChannelAftertouch"
+      } else if (status === 0xE0) {
+        msgType = "PitchBend"
       }
 
-      const msg = {
+      const msg: MidiMessage = {
         type: msgType,
-        note: ret.data[1],
-        velocity: ret.data[2],
+        data,
+        channel,
+      }
+
+      if (data.length > 1) {
+        const data1 = data[1]
+        if (msgType === "ControlChange") {
+          msg.controller = data1
+        } else if (msgType === "ProgramChange") {
+          msg.program = data1
+        } else if (msgType === "ChannelAftertouch") {
+          msg.pressure = data1
+        } else {
+          msg.note = data1
+        }
+      }
+      if (data.length > 2) {
+        const data2 = data[2]
+        if (msgType === "ControlChange") {
+          msg.value = data2
+        } else if (msgType === "PolyAftertouch") {
+          msg.pressure = data2
+        } else {
+          msg.velocity = data2
+        }
+      }
+
+      if (msgType === "PitchBend" && data.length > 2) {
+        const lsb = data[1] & 0x7F
+        const msb = data[2] & 0x7F
+        msg.pitchBend = ((msb << 7) | lsb) - 8192
       }
 
       this.notifyListeners('MIDI_MSG_EVENT', msg)
     }
     this.wmh.addDeviceListener(options.deviceNumber, callback)
     console.log("MIDIPlugin", "Device opened: " + options.deviceNumber)
+  }
+
+  async sendMIDIMessage(options: SendMIDIMessageOptions): Promise<void> {
+    const wmh = WebMIDIHandler.instance;
+    await wmh.initWebMidi()
+    wmh.sendMIDIMessage(options.data, options.deviceNumber)
   }
 
   async initConnectionListener(): Promise<void> {

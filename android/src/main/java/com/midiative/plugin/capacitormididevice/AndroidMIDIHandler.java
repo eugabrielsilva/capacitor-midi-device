@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
+import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiOutputPort;
 import android.media.midi.MidiManager.DeviceCallback;
@@ -27,6 +28,8 @@ public class AndroidMIDIHandler {
     private MidiManager midiManager;
 
     private MidiOutputPort lastOutputPort = null;
+    private MidiInputPort lastInputPort = null;
+    private int activeDeviceNumber = -1;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     AndroidMIDIHandler(Context context) {
@@ -110,6 +113,14 @@ public class AndroidMIDIHandler {
                 }
             }
 
+            if (lastInputPort != null) {
+                try {
+                    lastInputPort.close();
+                } catch (IOException e) {
+                    Log.e("MIDIPlugin", "Could not close previously connected output device");
+                }
+            }
+
             this.midiManager.openDevice(deviceInfos[deviceNumber],
                     (MidiDevice device) -> {
                         if (device != null) {
@@ -123,6 +134,14 @@ public class AndroidMIDIHandler {
 
                             lastOutputPort = midiOutputPort;
                             midiOutputPort.connect(new MIDIMessageReceiver(consumer));
+
+                            MidiInputPort midiInputPort = device.openInputPort(0);
+                            if (midiInputPort == null) {
+                                Log.w("MIDIPlugin", "Could not open input port for device, sending will be unavailable");
+                            } else {
+                                lastInputPort = midiInputPort;
+                                activeDeviceNumber = deviceNumber;
+                            }
                         } else {
                             Log.e("MIDIPlugin", "Could not open MIDI device");
                         }
@@ -148,5 +167,61 @@ public class AndroidMIDIHandler {
                 consumer.accept(listMIDIDevices());
             }
         }, null);
+    }
+
+    public boolean sendMIDIMessage(byte[] data, Integer deviceNumber) {
+        if (this.midiManager == null) {
+            this.logNoMIDIFeatureFound();
+            return false;
+        }
+
+        if (data == null || data.length == 0) {
+            Log.e("MIDIPlugin", "MIDI message data cannot be empty");
+            return false;
+        }
+
+        int targetDeviceNumber = deviceNumber != null ? deviceNumber : activeDeviceNumber;
+        if (targetDeviceNumber < 0) {
+            Log.e("MIDIPlugin", "No MIDI output device selected");
+            return false;
+        }
+
+        MidiDeviceInfo[] deviceInfos = this.midiManager.getDevices();
+        if (targetDeviceNumber >= deviceInfos.length) {
+            Log.e("MIDIPlugin", "Invalid target MIDI device number");
+            return false;
+        }
+
+        if (lastInputPort != null && targetDeviceNumber == activeDeviceNumber) {
+            try {
+                lastInputPort.send(data, 0, data.length);
+                return true;
+            } catch (IOException e) {
+                Log.e("MIDIPlugin", "Could not send MIDI message using active input port", e);
+                return false;
+            }
+        }
+
+        this.midiManager.openDevice(deviceInfos[targetDeviceNumber],
+                (MidiDevice device) -> {
+                    if (device == null) {
+                        Log.e("MIDIPlugin", "Could not open MIDI device to send message");
+                        return;
+                    }
+
+                    MidiInputPort midiInputPort = device.openInputPort(0);
+                    if (midiInputPort == null) {
+                        Log.e("MIDIPlugin", "Could not open input port to send MIDI message");
+                        return;
+                    }
+
+                    try {
+                        midiInputPort.send(data, 0, data.length);
+                    } catch (IOException e) {
+                        Log.e("MIDIPlugin", "Could not send MIDI message", e);
+                    }
+                }, new Handler(Looper.getMainLooper()));
+
+        return true;
     }
 }
