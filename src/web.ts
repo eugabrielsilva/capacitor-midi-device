@@ -1,6 +1,7 @@
 import { WebPlugin } from '@capacitor/core';
 
 import {WebMIDIHandler} from "./WebMIDIHandler";
+import {MidiMessageType} from './definitions';
 import type {CapacitorMIDIDevicePlugin, DeviceOptions, MidiMessage, SendMIDIMessageOptions} from './definitions';
 
 export class CapacitorMIDIDeviceWeb
@@ -28,21 +29,21 @@ export class CapacitorMIDIDeviceWeb
       const channel = (statusByte & 0x0F) + 1;
       const velocity = data.length > 2 ? data[2] : 0;
 
-      let msgType = "SystemMessage"
+      let msgType = MidiMessageType.SystemMessage
       if (status === 0x80 || (status === 0x90 && velocity === 0)) {
-        msgType = "NoteOff"
+        msgType = MidiMessageType.NoteOff
       } else if (status === 0x90) {
-        msgType = "NoteOn"
+        msgType = MidiMessageType.NoteOn
       } else if (status === 0xA0) {
-        msgType = "PolyAftertouch"
+        msgType = MidiMessageType.PolyAftertouch
       } else if (status === 0xB0) {
-        msgType = "ControlChange"
+        msgType = MidiMessageType.ControlChange
       } else if (status === 0xC0) {
-        msgType = "ProgramChange"
+        msgType = MidiMessageType.ProgramChange
       } else if (status === 0xD0) {
-        msgType = "ChannelAftertouch"
+        msgType = MidiMessageType.ChannelAftertouch
       } else if (status === 0xE0) {
-        msgType = "PitchBend"
+        msgType = MidiMessageType.PitchBend
       }
 
       const msg: MidiMessage = {
@@ -53,11 +54,11 @@ export class CapacitorMIDIDeviceWeb
 
       if (data.length > 1) {
         const data1 = data[1]
-        if (msgType === "ControlChange") {
+        if (msgType === MidiMessageType.ControlChange) {
           msg.controller = data1
-        } else if (msgType === "ProgramChange") {
+        } else if (msgType === MidiMessageType.ProgramChange) {
           msg.program = data1
-        } else if (msgType === "ChannelAftertouch") {
+        } else if (msgType === MidiMessageType.ChannelAftertouch) {
           msg.pressure = data1
         } else {
           msg.note = data1
@@ -65,16 +66,16 @@ export class CapacitorMIDIDeviceWeb
       }
       if (data.length > 2) {
         const data2 = data[2]
-        if (msgType === "ControlChange") {
+        if (msgType === MidiMessageType.ControlChange) {
           msg.value = data2
-        } else if (msgType === "PolyAftertouch") {
+        } else if (msgType === MidiMessageType.PolyAftertouch) {
           msg.pressure = data2
         } else {
           msg.velocity = data2
         }
       }
 
-      if (msgType === "PitchBend" && data.length > 2) {
+      if (msgType === MidiMessageType.PitchBend && data.length > 2) {
         const lsb = data[1] & 0x7F
         const msb = data[2] & 0x7F
         msg.pitchBend = ((msb << 7) | lsb) - 8192

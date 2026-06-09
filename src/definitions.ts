@@ -1,5 +1,16 @@
 import type {PluginListenerHandle} from "@capacitor/core";
 
+export enum MidiMessageType {
+  SystemMessage = 'SystemMessage',
+  NoteOff = 'NoteOff',
+  NoteOn = 'NoteOn',
+  PolyAftertouch = 'PolyAftertouch',
+  ControlChange = 'ControlChange',
+  ProgramChange = 'ProgramChange',
+  ChannelAftertouch = 'ChannelAftertouch',
+  PitchBend = 'PitchBend',
+}
+
 /**
  * Parsed MIDI message emitted by the plugin.
  *
@@ -8,7 +19,7 @@ import type {PluginListenerHandle} from "@capacitor/core";
  */
 export interface MidiMessage {
   /** Human-friendly message type like `NoteOn`, `ControlChange`, `PitchBend`, etc. */
-  type: string;
+  type: MidiMessageType;
 
   /** Raw MIDI bytes (0-255). */
   data: number[];

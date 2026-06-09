@@ -57,6 +57,7 @@ CapacitorMIDIDevice.addListener('MIDI_MSG_EVENT', (msg) => {
 * [`addListener('MIDI_MSG_EVENT', ...)`](#addlistenermidi_msg_event-)
 * [`addListener('MIDI_CON_EVENT', ...)`](#addlistenermidi_con_event-)
 * [Interfaces](#interfaces)
+* [Enums](#enums)
 
 </docgen-index>
 
@@ -185,17 +186,34 @@ Parsed MIDI message emitted by the plugin.
 The raw MIDI bytes are always available in `data` and semantic fields are
 populated according to the MIDI message type.
 
-| Prop             | Type                  | Description                                                                   |
-| ---------------- | --------------------- | ----------------------------------------------------------------------------- |
-| **`type`**       | <code>string</code>   | Human-friendly message type like `NoteOn`, `ControlChange`, `PitchBend`, etc. |
-| **`data`**       | <code>number[]</code> | Raw MIDI bytes (0-255).                                                       |
-| **`channel`**    | <code>number</code>   | MIDI channel in range 1..16.                                                  |
-| **`note`**       | <code>number</code>   | Note number (0-127) for note-based messages.                                  |
-| **`velocity`**   | <code>number</code>   | Note velocity (0-127) for note on/off messages.                               |
-| **`controller`** | <code>number</code>   | Controller number (0-127) for Control Change messages.                        |
-| **`value`**      | <code>number</code>   | Controller value (0-127) for Control Change messages.                         |
-| **`program`**    | <code>number</code>   | Program number (0-127) for Program Change messages.                           |
-| **`pressure`**   | <code>number</code>   | Pressure value (0-127) for aftertouch messages.                               |
-| **`pitchBend`**  | <code>number</code>   | Pitch bend value normalized to -8192..8191.                                   |
+| Prop             | Type                                                        | Description                                                                   |
+| ---------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **`type`**       | <code><a href="#midimessagetype">MidiMessageType</a></code> | Human-friendly message type like `NoteOn`, `ControlChange`, `PitchBend`, etc. |
+| **`data`**       | <code>number[]</code>                                       | Raw MIDI bytes (0-255).                                                       |
+| **`channel`**    | <code>number</code>                                         | MIDI channel in range 1..16.                                                  |
+| **`note`**       | <code>number</code>                                         | Note number (0-127) for note-based messages.                                  |
+| **`velocity`**   | <code>number</code>                                         | Note velocity (0-127) for note on/off messages.                               |
+| **`controller`** | <code>number</code>                                         | Controller number (0-127) for Control Change messages.                        |
+| **`value`**      | <code>number</code>                                         | Controller value (0-127) for Control Change messages.                         |
+| **`program`**    | <code>number</code>                                         | Program number (0-127) for Program Change messages.                           |
+| **`pressure`**   | <code>number</code>                                         | Pressure value (0-127) for aftertouch messages.                               |
+| **`pitchBend`**  | <code>number</code>                                         | Pitch bend value normalized to -8192..8191.                                   |
+
+
+### Enums
+
+
+#### MidiMessageType
+
+| Members                 | Value                            |
+| ----------------------- | -------------------------------- |
+| **`SystemMessage`**     | <code>'SystemMessage'</code>     |
+| **`NoteOff`**           | <code>'NoteOff'</code>           |
+| **`NoteOn`**            | <code>'NoteOn'</code>            |
+| **`PolyAftertouch`**    | <code>'PolyAftertouch'</code>    |
+| **`ControlChange`**     | <code>'ControlChange'</code>     |
+| **`ProgramChange`**     | <code>'ProgramChange'</code>     |
+| **`ChannelAftertouch`** | <code>'ChannelAftertouch'</code> |
+| **`PitchBend`**         | <code>'PitchBend'</code>         |
 
 </docgen-api>
