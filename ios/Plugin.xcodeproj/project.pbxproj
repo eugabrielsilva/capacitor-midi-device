@@ -13,7 +13,6 @@
 		50ADFF97201F53D600D50D53 /* CapacitorMIDIDeviceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50ADFF96201F53D600D50D53 /* CapacitorMIDIDeviceTests.swift */; };
 		50ADFF99201F53D600D50D53 /* CapacitorMIDIDevicePlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 50ADFF8B201F53D600D50D53 /* CapacitorMIDIDevicePlugin.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		50ADFFA42020D75100D50D53 /* Capacitor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50ADFFA52020D75100D50D53 /* Capacitor.framework */; };
-		50ADFFA82020EE4F00D50D53 /* CapacitorMIDIDevicePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 50ADFFA72020EE4F00D50D53 /* CapacitorMIDIDevicePlugin.m */; };
 		50E1A94820377CB70090CE1A /* CapacitorMIDIDevicePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E1A94720377CB70090CE1A /* CapacitorMIDIDevicePlugin.swift */; };
 /* End PBXBuildFile section */
 
@@ -36,7 +35,6 @@
 		50ADFF96201F53D600D50D53 /* CapacitorMIDIDeviceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapacitorMIDIDeviceTests.swift; sourceTree = "<group>"; };
 		50ADFF98201F53D600D50D53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50ADFFA52020D75100D50D53 /* Capacitor.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Capacitor.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		50ADFFA72020EE4F00D50D53 /* CapacitorMIDIDevicePlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CapacitorMIDIDevicePlugin.m; sourceTree = "<group>"; };
 		50E1A94720377CB70090CE1A /* CapacitorMIDIDevicePlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CapacitorMIDIDevicePlugin.swift; sourceTree = "<group>"; };
 		5E23F77F099397094342571A /* Pods-Plugin.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Plugin.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Plugin/Pods-Plugin.debug.xcconfig"; sourceTree = "<group>"; };
 		91781294A431A2A7CC6EB714 /* Pods-Plugin.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Plugin.release.xcconfig"; path = "Pods/Target Support Files/Pods-Plugin/Pods-Plugin.release.xcconfig"; sourceTree = "<group>"; };
@@ -92,7 +90,6 @@
 			children = (
 				50E1A94720377CB70090CE1A /* CapacitorMIDIDevicePlugin.swift */,
 				50ADFF8B201F53D600D50D53 /* CapacitorMIDIDevicePlugin.h */,
-				50ADFFA72020EE4F00D50D53 /* CapacitorMIDIDevicePlugin.m */,
 				50ADFF8C201F53D600D50D53 /* Info.plist */,
 			);
 			path = Plugin;
@@ -304,7 +301,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				50E1A94820377CB70090CE1A /* CapacitorMIDIDevicePlugin.swift in Sources */,
-				50ADFFA82020EE4F00D50D53 /* CapacitorMIDIDevicePlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -473,7 +469,7 @@
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -498,7 +494,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -512,7 +508,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.getcapacitor.PluginTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -526,7 +522,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.getcapacitor.PluginTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

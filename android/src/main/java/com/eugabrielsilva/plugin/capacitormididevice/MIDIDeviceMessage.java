@@ -1,4 +1,4 @@
-package com.midiative.plugin.capacitormididevice;
+package com.eugabrielsilva.plugin.capacitormididevice;
 
 public class MIDIDeviceMessage {
     public byte[] msg;

@@ -1,4 +1,4 @@
-package com.midiative.plugin.capacitormididevice;
+package com.eugabrielsilva.plugin.capacitormididevice;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
