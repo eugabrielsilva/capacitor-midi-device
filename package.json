@@ -1,6 +1,6 @@
 {
   "name": "@eugabrielsilva/capacitor-midi-device",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "description": "connect midi devices to your app",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -9,8 +9,10 @@
   "files": [
     "android/src/main/",
     "android/build.gradle",
+    "android/proguard-rules.pro",
     "dist/",
     "ios/Plugin/",
+    "Package.swift",
     "EugabrielsilvaCapacitorMidiDevice.podspec"
   ],
   "author": "Gabriel Silva",
