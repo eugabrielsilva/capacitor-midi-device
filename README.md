@@ -1,49 +1,16 @@
 # @eugabrielsilva/capacitor-midi-device
 
-Connect midi devices to your app
+Connect midi devices to your Capacitor app.
+
+✅ Working on web, Android and iOS.
+
+⚠️ **Requires Capacitor 8**
 
 ## Install
 
 ```bash
 npm install @eugabrielsilva/capacitor-midi-device
 npx cap sync
-```
-
-## Event Payload Examples
-
-`MIDI_MSG_EVENT` now includes parsed fields so you do not need to decode `data` manually for common message types.
-
-Control Change example (`data: [176, 7, 100]`):
-
-```json
-{
-	"type": "ControlChange",
-	"data": [176, 7, 100],
-	"channel": 1,
-	"controller": 7,
-	"value": 100
-}
-```
-
-Pitch Bend example (`data: [224, 0, 64]`):
-
-```json
-{
-	"type": "PitchBend",
-	"data": [224, 0, 64],
-	"channel": 1,
-	"pitchBend": 0
-}
-```
-
-Quick usage:
-
-```ts
-CapacitorMIDIDevice.addListener('MIDI_MSG_EVENT', (msg) => {
-	if (msg.type === 'ControlChange') {
-		console.log(msg.channel, msg.controller, msg.value);
-	}
-});
 ```
 
 ## API
