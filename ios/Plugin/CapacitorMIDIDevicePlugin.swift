@@ -3,7 +3,17 @@ import Capacitor
 import CoreMIDI
 
 @objc(CapacitorMIDIDevicePlugin)
-public class CapacitorMIDIDevicePlugin: CAPPlugin {
+public class CapacitorMIDIDevicePlugin: CAPPlugin, CAPBridgedPlugin {
+  
+  public let identifier = "CapacitorMIDIDevicePlugin"
+  public let jsName = "CapacitorMIDIDevice"
+  public let pluginMethods: [CAPPluginMethod] = [
+    CAPPluginMethod(name: "listMIDIDevices", returnType: CAPPluginReturnPromise),
+    CAPPluginMethod(name: "openDevice", returnType: CAPPluginReturnPromise),
+    CAPPluginMethod(name: "sendMIDIMessage", returnType: CAPPluginReturnPromise),
+    CAPPluginMethod(name: "initConnectionListener", returnType: CAPPluginReturnPromise)
+  ]
+
   private var midiClient: MIDIClientRef = 0
   private var inputPort: MIDIPortRef = 0
   private var outputPort: MIDIPortRef = 0
